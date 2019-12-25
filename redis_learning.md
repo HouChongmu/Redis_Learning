@@ -321,7 +321,17 @@ hlen
 5. Memcached的分布式不是在服务器端实现的，而是在客户端应用中实现的，即通过内置算法([一致性哈希](https://www.cnblogs.com/lpfuture/p/5796398.html))制定目标数据的节点
 
 #### 3.2 Redis支持的数据类型比Memcached多
-##### 3.1.2
+##### 3.1.2     
+
+
+3.3 过期策略–memcache在set时就指定，例如set key1 0 0 8,即永不过期。Redis可以通过例如expire 设定，例如expire name 10   
+3.4 分布式–设定memcache集群，利用magent做一主多从;redis可以做一主多从。都可以一主一从
+3.5 存储数据安全–memcache挂掉后，数据没了；redis可以定期保存到磁盘（持久化）
+3.6 灾难恢复–memcache挂掉后，数据不可恢复; redis数据丢失后可以通过aof恢复
+
+
+
+
 ### 4. Redis适用于哪些场景    
 1. 缓存       
 合理的利用缓存不仅能够提升网站访问速度，还能大大降低数据库的压力。Redis提供了键过期功能，也提供了灵活的键淘汰策略，所以，现在Redis用在缓存的场合非常多。   
@@ -334,7 +344,79 @@ hlen
 5. Message Queue    
 消息队列是大型网站必用中间件，如ActiveMQ、RabbitMQ、Kafka等流行的消息队列中间件，主要用于业务解耦、流量削峰及异步处理实时性低的业务。Redis提供了发布/订阅及阻塞队列功能，能实现一个简单的消息队列系统。另外，这个不能和专业的消息中间件相比。   
 
-### 5. Redis其他特性   
+### 5. Redis其他特性      
+
+#### 5.1 RDB&AOF   
+##### 5.1.1 RDB
+RDB持久化方式是通过快照（snapshotting）完成的，当符合一定条件时，redis会自动将内存中所有的数据以二进制方式生成一份副本并存储在硬盘上，当redis重启时，并且AOF持久化未开启，redis会读取RDB持久化生成的二进制文件（即dump.rdb,可以通过dbfilename修改）进行数据恢复，对于持久化信息可以通过命令“info persistence”查看    
+快照文件存储位置：     
+RDB快照文件存储位置有dir配置参数指明，文件名由dbfilename指定          
+```
+127.0.0.1:6379> config get dir
+1) "dir"
+2) "C:\\Users\\houyl"
+127.0.0.1:6379> config get dbfilename
+1) "dbfilename"
+2) "dump.rdb"
+127.0.0.1:6379> config set dbfilename redis_dump.rdb
+OK
+127.0.0.1:6379> config get dbfilename
+1) "dbfilename"
+2) "redis_dump.rdb"
+127.0.0.1:6379>
+```
+快照触发条件    
+1. 客户端执行命令save和bgsave会生成快照         
+>客户端执行save命令，该命令强制redis执行快照，这时候redis处于阻塞状态，不会响应任何其他客户端发来的请求，直到RDB快照文件执行完毕，所以请慎用。       
+save:  
+```
+127.0.0.1:6379> info persistence
+# Persistence
+loading:0
+rdb_changes_since_last_save:0
+rdb_bgsave_in_progress:0
+rdb_last_save_time:1577252161
+rdb_last_bgsave_status:ok
+rdb_last_bgsave_time_sec:-1
+rdb_current_bgsave_time_sec:-1
+aof_enabled:0
+aof_rewrite_in_progress:0
+aof_rewrite_scheduled:0
+aof_last_rewrite_time_sec:-1
+aof_current_rewrite_time_sec:-1
+aof_last_bgrewrite_status:ok
+aof_last_write_status:ok
+127.0.0.1:6379> save
+OK
+127.0.0.1:6379> info persistence
+# Persistence
+loading:0
+rdb_changes_since_last_save:0
+rdb_bgsave_in_progress:0
+rdb_last_save_time:1577252506
+rdb_last_bgsave_status:ok
+rdb_last_bgsave_time_sec:-1
+rdb_current_bgsave_time_sec:-1
+aof_enabled:0
+aof_rewrite_in_progress:0
+aof_rewrite_scheduled:0
+aof_last_rewrite_time_sec:-1
+aof_current_rewrite_time_sec:-1
+aof_last_bgrewrite_status:ok
+aof_last_write_status:ok
+127.0.0.1:6379>
+```   
+bgsave:    
+bgsave命令可以理解为background save，当执行了bgsave时，redis会fork出一个子进程来执行快照生成操作，并且redis fork这个子进程的过程中redis是阻塞的，这段时间不会响应客户端的请求，当子进程创建完成之后redis开始响应客户端。其实redis自动快照也是用bgsave来完成的     
+<img width="300" src="https://note.youdao.com/yws/api/personal/file/EC52D691F1264BC8BB2BE51C36997F97?method=download&shareKey=0066db09a8a3b580a76976d588221222"/>
+
+
+2. 根据配置文件save m n规则进行自动快照        
+
+3. 主从复制时，从库全量复制同步主库数据，此时主库会执行bgsave命令进行快照      
+4. 客户端执行数据库清空命令flushall时，触发快照        
+5. 客户端执行shutdown关闭redis时，触发快照
+
 ### 6. Redis集群方案
 #### 6.1 twemproxy
 ##### 6.1.1 何为twemproxy
@@ -422,4 +504,4 @@ Codis-fe，操作dashboard
 >3.如果保存数据的槽被分配给当前节点，则去槽中执行命令，并把命令执行结果返回给客户端  
 >4.如果保存数据的槽不在当前节点的管理范围内，则向客户端返回moved重定向异常  
 >5.客户端接收到节点返回的结果，如果是moved异常，则从moved异常中获取目标节点的信息  
->6.客户端向目标节点发送命令，获取命令执行结果  
+>6.客户端向目标节点发送命令，获取命令执行结果    
