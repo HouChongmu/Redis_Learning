@@ -347,7 +347,7 @@ hlen
 消息队列是大型网站必用中间件，如ActiveMQ、RabbitMQ、Kafka等流行的消息队列中间件，主要用于业务解耦、流量削峰及异步处理实时性低的业务。Redis提供了发布/订阅及阻塞队列功能，能实现一个简单的消息队列系统。另外，这个不能和专业的消息中间件相比。   
 
 ### 4. Redis其他特性      
-1. [RDB&AOF](http://note.youdao.com/noteshare?id=82894bc0665291b754183dc83e3372c4&sub=C77CA4D13A094BA591D66E6586185F58)      
+1. [RDB&AOF](https://github.com/HouChongmu/Redis_Learning/blob/Redis_Learning/Redis_rdb&aof/Redis%E4%B9%8BRDB&AOF.md)      
 2. 数据淘汰策略    
 ```
 
@@ -376,4 +376,4 @@ hlen
 ```
 
 ### 5. Redis集群方案
-1. [Redis集群方案](http://note.youdao.com/noteshare?id=dca265ecca4c2e456479fe6aa4cae081&sub=C832B1AF069C4B8FB9E5E79E3513C41F)
+1. [Redis集群方案](https://github.com/HouChongmu/Redis_Learning/blob/Redis_Learning/Redis%E9%9B%86%E7%BE%A4%E5%88%86%E5%B8%83%E6%96%B9%E5%BC%8F/Redis%E5%B8%B8%E8%A7%81%E9%9B%86%E7%BE%A4%E6%96%B9%E6%A1%88.md)
