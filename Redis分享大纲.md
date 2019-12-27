@@ -308,7 +308,7 @@ hlen
 
 
 
- 其中的过程是这样的：
+ 其中的过程是这样的：   
 1.检查用户请求的数据是缓存中是否有存在，如果有存在的话，只需要直接把请求的数据返回，无需查询数据库。   
 2.如果请求的数据在缓存中找不到，这时候再去查询数据库。返回请求数据的同时，把数据存储到缓存中一份。   
 3.保持缓存的“新鲜性”，每当数据发生变化的时候（比如，数据有被修改，或被删除的情况下），要同步的更新缓存信息，确保用户不会在缓存取到旧的数据。   
@@ -324,12 +324,12 @@ hlen
 
 
 ##### 2.3 过期策略   
-过期策略–memcache在set时就指定，例如set key1008,即永不过期。Redis可以通过例如expire 设定，例如expire name 10   
+过期策略–memcache在set时就指定，例如set key1008,即永不过期。Redis可以通过例如expire 设定，例如expire name 10       
 ##### 2.4 分布式集群都可以一主多从
 ##### 2.5 持久化   
-存储数据安全–memcache挂掉后，数据没了；redis可以定期保存到磁盘（持久化） 
+存储数据安全–memcache挂掉后，数据没了；redis可以定期保存到磁盘（持久化）
 ##### 2.6 灾难恢复   
-灾难恢复–memcache挂掉后，数据不可恢复; redis数据丢失后可以通过aof恢复 
+灾难恢复–memcache挂掉后，数据不可恢复; redis数据丢失后可以通过aof恢复
 
 
 
@@ -347,7 +347,33 @@ hlen
 消息队列是大型网站必用中间件，如ActiveMQ、RabbitMQ、Kafka等流行的消息队列中间件，主要用于业务解耦、流量削峰及异步处理实时性低的业务。Redis提供了发布/订阅及阻塞队列功能，能实现一个简单的消息队列系统。另外，这个不能和专业的消息中间件相比。   
 
 ### 4. Redis其他特性      
-1. [RDB&AOF](http://note.youdao.com/noteshare?id=82894bc0665291b754183dc83e3372c4&sub=C77CA4D13A094BA591D66E6586185F58)   
+1. [RDB&AOF](http://note.youdao.com/noteshare?id=82894bc0665291b754183dc83e3372c4&sub=C77CA4D13A094BA591D66E6586185F58)      
+2. 数据淘汰策略    
+```
+
+# MAXMEMORY POLICY: how Redis will select what to remove when maxmemory
+# is reached? You can select among five behavior:
+#
+# volatile-lru -> remove the key with an expire set using an LRU algorithm
+# allkeys-lru -> remove any key accordingly to the LRU algorithm
+# volatile-random -> remove a random key with an expire set
+# allkeys->random -> remove a random key, any key
+# volatile-ttl -> remove the key with the nearest expire time (minor TTL)
+# noeviction -> don't expire at all, just return an error on write operations
+#
+# Note: with all the kind of policies, Redis will return an error on write
+#       operations, when there are not suitable keys for eviction.
+#
+#       At the date of writing this commands are: set setnx setex append
+#       incr decr rpush lpush rpushx lpushx linsert lset rpoplpush sadd
+#       sinter sinterstore sunion sunionstore sdiff sdiffstore zadd zincrby
+#       zunionstore zinterstore hset hsetnx hmset hincrby incrby decrby
+#       getset mset msetnx exec sort
+#
+# The default is:
+#
+# maxmemory-policy volatile-lru
+```
 
 ### 5. Redis集群方案
 1. [Redis集群方案](http://note.youdao.com/noteshare?id=dca265ecca4c2e456479fe6aa4cae081&sub=C832B1AF069C4B8FB9E5E79E3513C41F)
